@@ -21,10 +21,11 @@
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
  
-  IF(APPLE)
-   SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
-   SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
-  ENDIF(APPLE)
+    IF(APPLE)
+    # Build only for the native architecture instead of universal binary
+    set(CMAKE_OSX_ARCHITECTURES "${CMAKE_HOST_SYSTEM_PROCESSOR}" CACHE STRING "Build architecture for Mac OS X" FORCE)
+    SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
+ENDIF(APPLE)
 
 
 #--------------------------------------------------------------------
@@ -448,11 +449,22 @@ if(BUILD_SDL2_APP)
     # find SDL headers and libraries
     target_compile_definitions(${target} PRIVATE ML_INCLUDE_SDL=1)
     if(APPLE)
-        # to use the SDL2 framework in /Library/Frameworks, do this:
-        set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "/Library/Frameworks")
-        find_package(SDL2 REQUIRED COMPONENTS SDL2)
-                
+        # Fix: Add framework path and proper include paths for SDL2
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -F/Library/Frameworks")
+        target_link_libraries(${target} PRIVATE "-framework SDL2")
         
+        # Add SDL2 framework headers path and make sure SDL2 subdirectory is in include path
+        target_include_directories(${target} PRIVATE 
+            "/Library/Frameworks/SDL2.framework/Headers"
+            "/Library/Frameworks/SDL2.framework"
+        )
+        
+        # Add compile definitions to help SDL2 headers find includes correctly
+        target_compile_definitions(${target} PRIVATE "SDL_VIDEO_DRIVER_COCOA")
+        
+        set_target_properties(${target} PROPERTIES
+            XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "/Library/Frameworks"
+        )
     elseif(WIN32)
         # it seems like there's no standard place to put the SDL dev tools on Windows.
         # we put them in an SDL dir alongside the main project directory.
@@ -468,7 +480,8 @@ if(BUILD_SDL2_APP)
     endif()
 
 
-    target_include_directories(${target} PRIVATE ${SDL2_INCLUDE_DIRS})
+    # Remove this line as we've already set the include directories above
+    # target_include_directories(${target} PRIVATE ${SDL2_INCLUDE_DIRS})
 
     # add madronalib
     target_include_directories(${target} PRIVATE ${MADRONALIB_INCLUDE_DIR})
