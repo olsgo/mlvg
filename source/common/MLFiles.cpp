@@ -34,12 +34,7 @@ const char kPlatformFileSeparator{
 // TODO move to native code
 ml::Path fsToMLPath(const fs::path& p)
 {
-
-#if ML_MAC
-    char separator{ kPlatformFileSeparator };
-#elif ML_WINDOWS
-    char separator{ kPlatformFileSeparator };
-#endif
+    char separator = kPlatformFileSeparator;  // Move declaration outside platform-specific blocks
     std::string pathStr(p.string());
     TextFragment filePathAsText(pathStr.c_str());
     return textToPath(filePathAsText, separator);
@@ -48,10 +43,11 @@ ml::Path fsToMLPath(const fs::path& p)
 // TODO move to native code, clean up
 fs::path mlToFSPath(const ml::Path& p)
 {
+  TextFragment pathTxt;
 #if ML_MAC
-  TextFragment pathTxt = filePathToText(p);
+  pathTxt = filePathToText(p);
 #elif ML_WINDOWS
-  TextFragment pathTxt = filePathToText(p);
+  pathTxt = filePathToText(p);
 #endif
   
   return fs::path(pathTxt.getText());
