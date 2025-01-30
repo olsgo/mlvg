@@ -30,40 +30,24 @@ const char kPlatformFileSeparator{
 #endif
 };
 
+const char separator = kPlatformFileSeparator;
 
-// TODO move to native code
 ml::Path fsToMLPath(const fs::path& p)
 {
-
-#if ML_MAC
-    char separator{ kPlatformFileSeparator };
-#elif ML_WINDOWS
-    char separator{ kPlatformFileSeparator };
-#endif
     std::string pathStr(p.string());
     TextFragment filePathAsText(pathStr.c_str());
     return textToPath(filePathAsText, separator);
 }
 
-// TODO move to native code, clean up
 fs::path mlToFSPath(const ml::Path& p)
 {
-#if ML_MAC
-  TextFragment pathTxt = filePathToText(p);
-#elif ML_WINDOWS
-  TextFragment pathTxt = filePathToText(p);
-#endif
-  
-  return fs::path(pathTxt.getText());
+    TextFragment pathTxt = filePathToText(p);
+    return fs::path(pathTxt.getText());
 }
 
 TextFragment ml::filePathToText(const ml::Path& p)
 {
-#if ML_MAC
-    return rootPathToText(p);
-#elif ML_WINDOWS
-    return pathToText(p, kPlatformFileSeparator);
-#endif
+    return pathToText(p, separator);
 }
 
 // File

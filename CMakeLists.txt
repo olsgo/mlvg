@@ -450,9 +450,15 @@ if(BUILD_SDL2_APP)
     if(APPLE)
         # to use the SDL2 framework in /Library/Frameworks, do this:
         set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "/Library/Frameworks")
-        find_package(SDL2 REQUIRED COMPONENTS SDL2)
-                
         
+        # Add framework search path for SDL2
+        target_link_options(${target} PRIVATE "-F/Library/Frameworks")
+        
+        find_package(SDL2 REQUIRED COMPONENTS SDL2)
+        
+        # Add these lines to properly link SDL2 framework
+        find_library(SDL2_LIBRARY SDL2)
+        target_link_libraries(${target} PRIVATE "-framework SDL2")
     elseif(WIN32)
         # it seems like there's no standard place to put the SDL dev tools on Windows.
         # we put them in an SDL dir alongside the main project directory.
