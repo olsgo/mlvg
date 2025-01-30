@@ -1,4 +1,4 @@
-
+ 
 // mlvg: GUI library for madronalib apps and plugins
 // Copyright (C) 2019-2022 Madrona Labs LLC
 // This software is provided 'as-is', without any express or implied warranty.
@@ -36,9 +36,9 @@ ml::Path fsToMLPath(const fs::path& p)
 {
 
 #if ML_MAC
-    char separator{ '/' };
+    char separator{ kPlatformFileSeparator };
 #elif ML_WINDOWS
-    char separator{ '\\' };
+    char separator{ kPlatformFileSeparator };
 #endif
     std::string pathStr(p.string());
     TextFragment filePathAsText(pathStr.c_str());
@@ -49,9 +49,9 @@ ml::Path fsToMLPath(const fs::path& p)
 fs::path mlToFSPath(const ml::Path& p)
 {
 #if ML_MAC
-  TextFragment pathTxt = rootPathToText(p);
+  TextFragment pathTxt = filePathToText(p);
 #elif ML_WINDOWS
-  TextFragment pathTxt = pathToText(p);
+  TextFragment pathTxt = filePathToText(p);
 #endif
   
   return fs::path(pathTxt.getText());
@@ -446,7 +446,6 @@ Path FileDialog::getFilePathForSave(Path startPath, TextFragment defaultName, Te
         {
             auto extIdx = findLast(filter, ':');
             auto ext = subText(filter, extIdx + 1, filter.lengthInCodePoints());
-
             if (defaultExtension == ext)
             {
                 filtersFrag = filter;
